@@ -4,7 +4,6 @@
  * Exposes findByProps globally and bootstraps plugins and themes.
  */
 
-import "./types/global";
 import { findByProps } from "./webpack/findByProps";
 import { initPlugins } from "./plugins/index";
 
