@@ -56,12 +56,12 @@
 
   <!-- Hero -->
   <main class="max-w-6xl mx-auto px-6">
-    <section class="min-h-[calc(100vh-88px)] flex flex-col items-center justify-center text-center py-16">
+    <section class="flex flex-col items-center text-center pt-24 pb-20">
       <span class="inline-flex items-center gap-2 rounded-full border border-zen-border bg-zen-card px-5 py-2 text-sm text-slate-400 mb-8">
         open source · Manifest V3 · zéro télémétrie
       </span>
 
-      <h1 class="font-display text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight mb-8 max-w-4xl">
+      <h1 class="font-display text-6xl sm:text-7xl font-bold tracking-tight mb-8 max-w-4xl">
         Discord, allégé et sous <span class="accent">ton</span> contrôle
       </h1>
 
@@ -88,6 +88,100 @@
           Voir le code source
         </a>
       </div>
+    </section>
+
+    <!-- Fonctionnalités -->
+    <section class="py-20 border-t border-zen-border">
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-16 text-center">
+        Ce que ZenCord change au quotidien
+      </h2>
+
+      <div class="flex flex-col divide-y divide-zen-border">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 py-10">
+          <div class="text-5xl w-20 shrink-0 text-center">🛡️</div>
+          <div>
+            <h3 class="font-display text-2xl font-semibold mb-2">Tracker Blocker</h3>
+            <p class="text-slate-400 text-lg leading-relaxed max-w-2xl">
+              Neutralise les fonctions d'envoi de télémétrie et d'analytics de
+              Discord, directement à la source — aucune donnée qui part sans que tu le saches.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 py-10">
+          <div class="text-5xl w-20 shrink-0 text-center">🖼️</div>
+          <div>
+            <h3 class="font-display text-2xl font-semibold mb-2">Avatar Viewer</h3>
+            <p class="text-slate-400 text-lg leading-relaxed max-w-2xl">
+              Clique sur n'importe quel avatar pour l'afficher en plein écran, en
+              pleine résolution, animé si besoin.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 py-10">
+          <div class="text-5xl w-20 shrink-0 text-center">💌</div>
+          <div>
+            <h3 class="font-display text-2xl font-semibold mb-2">Fake Nitro</h3>
+            <p class="text-slate-400 text-lg leading-relaxed max-w-2xl">
+              Envoie des émojis custom en lien CDN direct pour que tout le monde
+              puisse les voir, Nitro ou pas.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6 py-10">
+          <div class="text-5xl w-20 shrink-0 text-center">🎨</div>
+          <div>
+            <h3 class="font-display text-2xl font-semibold mb-2">Custom CSS</h3>
+            <p class="text-slate-400 text-lg leading-relaxed max-w-2xl">
+              Injection de thèmes CSS légers et modulaires — dont "Zen Dark", un
+              dégradé sombre rose/violet apaisant.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation -->
+    <section class="py-20 border-t border-zen-border">
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-16 text-center">
+        Installation en 3 étapes
+      </h2>
+
+      <div class="grid gap-8 sm:grid-cols-3">
+        <div class="text-center">
+          <div class="mx-auto mb-4 w-12 h-12 rounded-full bg-zen-card border border-zen-border flex items-center justify-center font-display font-bold accent text-lg">1</div>
+          <h3 class="font-display text-lg font-semibold mb-2">Télécharge le zip</h3>
+          <p class="text-slate-400">Récupère la dernière release depuis GitHub.</p>
+        </div>
+        <div class="text-center">
+          <div class="mx-auto mb-4 w-12 h-12 rounded-full bg-zen-card border border-zen-border flex items-center justify-center font-display font-bold accent text-lg">2</div>
+          <h3 class="font-display text-lg font-semibold mb-2">Active le mode dev</h3>
+          <p class="text-slate-400">Dans <code class="text-slate-300">chrome://extensions</code>, active "Mode développeur".</p>
+        </div>
+        <div class="text-center">
+          <div class="mx-auto mb-4 w-12 h-12 rounded-full bg-zen-card border border-zen-border flex items-center justify-center font-display font-bold accent text-lg">3</div>
+          <h3 class="font-display text-lg font-semibold mb-2">Charge l'extension</h3>
+          <p class="text-slate-400">Clique "Charger l'extension non empaquetée" et sélectionne le dossier.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA final -->
+    <section class="py-20 border-t border-zen-border text-center">
+      <h2 class="font-display text-3xl sm:text-4xl font-semibold mb-4">
+        Prêt à alléger ton Discord ? :3
+      </h2>
+      <p class="text-slate-400 text-lg mb-8">C'est gratuit, open source, et ça prend 2 minutes.</p>
+      <a
+        href="https://github.com/furaxdev/zencord/releases"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 rounded-xl bg-zen-pink px-8 py-4 text-lg font-display font-semibold text-zen-bg hover:opacity-90 transition-opacity"
+      >
+        Télécharger ZenCord
+      </a>
     </section>
   </main>
 
