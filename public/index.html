@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZenCord — un client Discord plus léger, plus zen :3</title>
+  <meta name="description" content="ZenCord, une extension ultra-légère qui ajoute des plugins, des thèmes CSS et bloque la télémétrie de Discord." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["Space Grotesk", "sans-serif"],
+            sans: ["Inter", "sans-serif"],
+          },
+          colors: {
+            zen: {
+              bg: "#0b0d12",
+              card: "#12151c",
+              border: "#1f2430",
+              turquoise: "#5eead4",
+              violet: "#a78bfa",
+            },
+          },
+          boxShadow: {
+            glow: "0 0 60px -10px rgba(94, 234, 212, 0.25), 0 0 60px -10px rgba(167, 139, 250, 0.25)",
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      background-color: #0b0d12;
+      background-image:
+        radial-gradient(ellipse 60% 40% at 15% 0%, rgba(94, 234, 212, 0.12), transparent),
+        radial-gradient(ellipse 60% 40% at 85% 10%, rgba(167, 139, 250, 0.14), transparent);
+    }
+    .gradient-text {
+      background-image: linear-gradient(90deg, #5eead4, #a78bfa);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .card-hover {
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      border-color: rgba(94, 234, 212, 0.4);
+      box-shadow: 0 0 40px -12px rgba(94, 234, 212, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-200 font-sans antialiased">
+
+  <!-- Nav -->
+  <header class="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
+    <div class="flex items-center gap-2 font-display font-semibold text-lg">
+      <span class="text-2xl">🌙</span>
+      <span>ZenCord</span>
+    </div>
+    <a
+      href="https://github.com/furaxdev/zencord"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-sm text-slate-400 hover:text-zen-turquoise transition-colors"
+    >
+      GitHub ↗
+    </a>
+  </header>
+
+  <!-- Hero -->
+  <main class="max-w-6xl mx-auto px-6">
+    <section class="text-center pt-16 pb-20">
+      <span class="inline-flex items-center gap-2 rounded-full border border-zen-border bg-zen-card/60 px-4 py-1.5 text-xs text-slate-400 mb-6">
+        ✨ ultra-léger · Manifest V3 · open source
+      </span>
+
+      <h1 class="font-display text-5xl sm:text-6xl font-bold tracking-tight mb-5">
+        Discord, en plus <span class="gradient-text">zen</span> :3
+      </h1>
+
+      <p class="text-slate-400 text-lg max-w-xl mx-auto mb-10">
+        ZenCord ajoute des plugins, des thèmes CSS custom et bloque la télémétrie
+        par défaut de Discord — sans jamais alourdir le client.
+      </p>
+
+      <div class="flex flex-wrap items-center justify-center gap-4">
+        <a
+          href="https://github.com/furaxdev/zencord/releases"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-zen-turquoise to-zen-violet px-6 py-3 font-medium text-zen-bg shadow-glow hover:opacity-90 transition-opacity"
+        >
+          ⬇️ Télécharger la dernière version
+        </a>
+        <a
+          href="https://github.com/furaxdev/zencord"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-xl border border-zen-border bg-zen-card px-6 py-3 font-medium text-slate-300 hover:border-zen-turquoise/40 transition-colors"
+        >
+          🐙 Voir le code source
+        </a>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="pb-24">
+      <div class="text-center mb-12">
+        <h2 class="font-display text-3xl font-semibold mb-3">Fonctionnalités ✨</h2>
+        <p class="text-slate-400">Des plugins modulaires, activables au besoin.</p>
+      </div>
+
+      <div class="grid gap-5 sm:grid-cols-2">
+        <div class="card-hover rounded-2xl border border-zen-border bg-zen-card p-6">
+          <div class="text-3xl mb-3">🛡️</div>
+          <h3 class="font-display text-lg font-semibold mb-2">Tracker Blocker</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Neutralise les fonctions d'envoi de télémétrie et d'analytics de
+            Discord, directement à la source.
+          </p>
+        </div>
+
+        <div class="card-hover rounded-2xl border border-zen-border bg-zen-card p-6">
+          <div class="text-3xl mb-3">🖼️</div>
+          <h3 class="font-display text-lg font-semibold mb-2">Avatar Viewer</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Clique sur n'importe quel avatar pour l'afficher en plein écran,
+            en pleine résolution, animé si besoin.
+          </p>
+        </div>
+
+        <div class="card-hover rounded-2xl border border-zen-border bg-zen-card p-6">
+          <div class="text-3xl mb-3">💜</div>
+          <h3 class="font-display text-lg font-semibold mb-2">Fake Nitro</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Envoie des émojis custom en lien CDN direct pour que tout le
+            monde puisse les voir, sans Nitro.
+          </p>
+        </div>
+
+        <div class="card-hover rounded-2xl border border-zen-border bg-zen-card p-6">
+          <div class="text-3xl mb-3">🎨</div>
+          <h3 class="font-display text-lg font-semibold mb-2">Custom CSS</h3>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Injection de thèmes CSS légers et modulaires — dont "Zen Dark",
+            un dégradé sombre turquoise/violet apaisant.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-zen-border">
+    <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-500">
+      <p>Fait avec 💜 par <span class="text-slate-300 font-medium">FuraxDev</span></p>
+      <p>ZenCord n'est ni affilié ni approuvé par Discord Inc.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
