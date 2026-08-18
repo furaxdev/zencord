@@ -24,5 +24,6 @@ declare global {
       push: (chunk: WebpackChunkPush) => unknown;
     };
     findByProps?: (...props: string[]) => Record<string, unknown> | undefined;
+    zencordToggleProfileThemePanel?: () => void;
   }
 }

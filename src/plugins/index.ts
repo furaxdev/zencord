@@ -8,6 +8,7 @@ import { trackerBlockerPlugin } from "./trackerBlocker";
 import { avatarViewerPlugin } from "./avatarViewer";
 import { fakeNitroPlugin } from "./fakeNitro";
 import { themeUnlockerPlugin } from "./themeUnlocker";
+import { fakeProfileThemesPlugin } from "./fakeProfileThemes";
 
 export interface Plugin {
   name: string;
@@ -17,7 +18,14 @@ export interface Plugin {
   stop(): void;
 }
 
-const plugins: Plugin[] = [examplePlugin, trackerBlockerPlugin, avatarViewerPlugin, fakeNitroPlugin, themeUnlockerPlugin];
+const plugins: Plugin[] = [
+  examplePlugin,
+  trackerBlockerPlugin,
+  avatarViewerPlugin,
+  fakeNitroPlugin,
+  themeUnlockerPlugin,
+  fakeProfileThemesPlugin,
+];
 
 export function getPlugins(): readonly Plugin[] {
   return plugins;
