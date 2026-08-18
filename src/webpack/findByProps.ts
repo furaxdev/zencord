@@ -12,9 +12,13 @@ export function findByProps(...props: string[]): Record<string, unknown> | undef
       return exported;
     }
 
-    const defaultExport = (exported as { default?: Record<string, unknown> }).default;
-    if (defaultExport && props.every((prop) => prop in defaultExport)) {
-      return defaultExport;
+    const defaultExport = (exported as { default?: unknown }).default;
+    if (
+      typeof defaultExport === "object" &&
+      defaultExport !== null &&
+      props.every((prop) => prop in defaultExport)
+    ) {
+      return defaultExport as Record<string, unknown>;
     }
   }
 
