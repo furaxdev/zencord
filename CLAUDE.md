@@ -18,5 +18,5 @@ Develop "ZenCord", an ultra-lightweight Discord client modification built as a b
 1. **Planning First**: ALWAYS propose the file structure or a step-by-step action plan before writing or modifying any code.
 2. **Security & Validity**: Ensure the `web_accessible_resources` directive in `manifest.json` is always correctly configured to allow script injection into the DOM.
 3. **Code Quality**: Write clean, modular, well-documented TypeScript following a strict "no-bloat" philosophy.
-4. - **NEVER modify, delete, or overwrite** the `public/index.html` file. This file contains the approved, rebranded production landing page assets and must remain completely untouched by Claude Code under any circumstances.
+
 
