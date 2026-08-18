@@ -9,6 +9,7 @@ import { avatarViewerPlugin } from "./avatarViewer";
 import { fakeNitroPlugin } from "./fakeNitro";
 import { themeUnlockerPlugin } from "./themeUnlocker";
 import { fakeProfileThemesPlugin } from "./fakeProfileThemes";
+import { settingsPanelPlugin } from "./settingsPanel";
 
 export interface Plugin {
   name: string;
@@ -25,6 +26,7 @@ const plugins: Plugin[] = [
   fakeNitroPlugin,
   themeUnlockerPlugin,
   fakeProfileThemesPlugin,
+  settingsPanelPlugin,
 ];
 
 export function getPlugins(): readonly Plugin[] {
