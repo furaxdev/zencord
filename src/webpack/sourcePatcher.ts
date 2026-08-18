@@ -5,8 +5,13 @@
  * Function.prototype.toString() (V8 returns the exact authored source, not
  * decompiled bytecode), regex-replaces it, and reconstructs the function
  * via the Function constructor. Works because Webpack factories are always
- * self-contained `function(module, exports, require) { ... }` closures that
- * never capture outer scope, so rebuilding from source loses nothing.
+ * self-contained closures over just (module, exports, require) that never
+ * capture outer scope, so rebuilding from source loses nothing.
+ *
+ * Discord's build emits factories as numeric-key object-literal shorthand
+ * methods (`419954(e,t,n){...}`), not classic `function(e,t,n){...}`
+ * expressions — Function.prototype.toString() reflects that exactly, so the
+ * shape regex below accepts both forms.
  */
 
 export interface SourcePatch {
@@ -16,7 +21,7 @@ export interface SourcePatch {
   replace: string;
 }
 
-const FACTORY_SHAPE = /^function\s*[^(]*\(([^)]*)\)\s*\{([\s\S]*)\}$/;
+const FACTORY_SHAPE = /^(?:function\s*)?[\w$]*\s*\(([^)]*)\)\s*\{([\s\S]*)\}$/;
 
 export function patchFactorySource(
   factory: (...args: unknown[]) => unknown,
