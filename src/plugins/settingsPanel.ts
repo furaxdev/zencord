@@ -22,7 +22,6 @@ import { getPlugins, setPluginEnabled } from "./index";
 const ENTRY_ID = "zencord-settings-entry";
 const MODAL_ID = "zencord-settings-modal";
 const STYLE_ID = "zencord-settings-style";
-const MIN_SIDEBAR_ITEMS = 8;
 
 function ensureStyles(): void {
   if (document.getElementById(STYLE_ID)) return;
@@ -68,17 +67,11 @@ function buildEntry(): HTMLElement {
 }
 
 function findLogOutItem(root: Element): HTMLElement | null {
-  const candidates = root.querySelectorAll<HTMLElement>('[class*="destructive_"]');
-  for (const candidate of candidates) {
-    const parent = candidate.parentElement;
-    if (!parent) continue;
-
-    const siblingItems = parent.querySelectorAll('[class*="item_"]');
-    if (siblingItems.length >= MIN_SIDEBAR_ITEMS) {
-      return candidate;
-    }
-  }
-  return null;
+  // Verified against the real DOM (Inspect Element): Log Out is the only
+  // element carrying both class prefixes at once. The sidebar is grouped
+  // into small per-category sub-lists (e.g. "Jeux et applications"), not
+  // one flat container, so a sibling-count heuristic doesn't apply here.
+  return root.querySelector<HTMLElement>('[class*="item_"][class*="destructive_"]');
 }
 
 function ensureEntryInjected(): void {
