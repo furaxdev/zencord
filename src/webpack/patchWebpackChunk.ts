@@ -29,7 +29,6 @@ function patchChunkArray(chunkArray: ChunkArray): void {
     for (const id of Object.keys(factories)) {
       const originalFactory = factories[id];
       const patched = patchFactorySource(originalFactory as (...args: unknown[]) => unknown, sourcePatches);
-      if (patched) console.log("[ZenCord][debug] source-patched module", id);
       const baseFactory = (patched ?? originalFactory) as Factory;
 
       factories[id] = (module: WebpackModule, exports: unknown, require: (id: string | number) => unknown) => {
