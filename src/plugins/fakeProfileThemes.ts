@@ -1,107 +1,107 @@
 /**
  * @author FuraxDev
- * FakeProfileThemes: lets anyone set a custom profile gradient without
- * Nitro by hiding a color pair as invisible Unicode "tag" characters
- * (3y3-style steganography) inside their About Me bio. Other ZenCord
- * users automatically decode it and re-skin the profile popout.
+ * FakeProfileThemes: lets anyone set a custom Nitro-style profile gradient
+ * by hiding a "[#primary,#accent]" color pair as invisible Unicode "tag"
+ * characters (3y3 encoding) inside their About Me bio.
  *
- * This is ZenCord's own encoding (zc1:<primary>:<accent>), not
- * wire-compatible with other clients' similar plugins. Applying the
- * gradient is a DOM heuristic (nearest sizable ancestor of the bio text),
- * not a real patch of Discord's profile component, so it may miss on
- * some client layouts.
+ * Wire format ported from Vencord's FakeProfileThemes plugin (GPL-3.0,
+ * itself a port of Alyxia's Vendetta plugin) so bios encoded by either
+ * client render correctly in both: https://github.com/Vendicated/Vencord
+ * /blob/main/src/plugins/fakeProfileThemes/index.tsx
+ *
+ * Patches the internal UserProfileStore-like module's getUserProfile() so
+ * a decoded bio makes Discord's own profile UI believe premiumType is 2
+ * (Nitro) with those themeColors — the real profile popout then renders
+ * the gradient itself, no DOM guessing needed. Pairs with ThemeUnlocker,
+ * which unlocks the premium-gated UI that reads this.
  */
 
 import type { Plugin } from "./index";
+import { findByProps } from "../webpack/findByProps";
 
 const TAG_OFFSET = 0xe0000;
 const TAG_MIN = 0x20;
-const TAG_MAX = 0x7e;
-const PAYLOAD_PREFIX = "zc1:";
+const TAG_MAX = 0x7f;
+const NITRO_FIRST = true;
+const POLL_INTERVAL_MS = 1000;
 const PANEL_ID = "zencord-profile-theme-panel";
 
-function encode3y3(payload: string): string {
-  let out = "";
-  for (const char of payload) {
-    const code = char.codePointAt(0) ?? 0;
-    if (code < TAG_MIN || code > TAG_MAX) continue;
-    out += String.fromCodePoint(TAG_OFFSET + code);
+function encode(primary: number, accent: number): string {
+  const message = `[#${primary.toString(16).padStart(6, "0")},#${accent.toString(16).padStart(6, "0")}]`;
+  const encoded = Array.from(message)
+    .map((char) => char.codePointAt(0) ?? 0)
+    .filter((code) => code >= TAG_MIN && code <= TAG_MAX)
+    .map((code) => String.fromCodePoint(code + TAG_OFFSET))
+    .join("");
+
+  return ` ${encoded}`;
+}
+
+function decode(bio: string | undefined): [number, number] | null {
+  if (!bio) return null;
+
+  const match = bio.match(
+    /\u{e005b}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]{1,6})\u{e002c}\u{e0023}([\u{e0061}-\u{e0066}\u{e0041}-\u{e0046}\u{e0030}-\u{e0039}]{1,6})\u{e005d}/u,
+  );
+  if (!match) return null;
+
+  const parsed = [...match[0]].map((char) => String.fromCodePoint((char.codePointAt(0) ?? 0) - TAG_OFFSET)).join("");
+  const [primary, accent] = parsed
+    .slice(1, -1)
+    .split(",")
+    .map((hex) => parseInt(hex.replace("#", "0x"), 16));
+
+  return primary !== undefined && accent !== undefined && !Number.isNaN(primary) && !Number.isNaN(accent)
+    ? [primary, accent]
+    : null;
+}
+
+interface UserProfile {
+  bio?: string;
+  premiumType?: number;
+  themeColors?: [number, number];
+  [key: string]: unknown;
+}
+
+interface UserProfileStoreModule {
+  getUserProfile: (userId: string) => UserProfile | undefined;
+}
+
+let originalGetUserProfile: UserProfileStoreModule["getUserProfile"] | undefined;
+let patchedModule: UserProfileStoreModule | undefined;
+let pollHandle: ReturnType<typeof setInterval> | undefined;
+
+function patchedGetUserProfile(this: UserProfileStoreModule, userId: string): UserProfile | undefined {
+  const profile = originalGetUserProfile!.call(this, userId);
+  if (!profile?.bio) return profile;
+  if (NITRO_FIRST && profile.themeColors) return profile;
+
+  const colors = decode(profile.bio);
+  if (!colors) return profile;
+
+  return { ...profile, premiumType: 2, themeColors: colors };
+}
+
+function tryPatch(): boolean {
+  const userProfileStore = findByProps("getUserProfile") as UserProfileStoreModule | undefined;
+  if (!userProfileStore) return false;
+
+  originalGetUserProfile = userProfileStore.getUserProfile;
+  userProfileStore.getUserProfile = patchedGetUserProfile;
+  patchedModule = userProfileStore;
+  return true;
+}
+
+function restore(): void {
+  if (patchedModule && originalGetUserProfile) {
+    patchedModule.getUserProfile = originalGetUserProfile;
   }
-  return out;
+  patchedModule = undefined;
+  originalGetUserProfile = undefined;
 }
 
-function decode3y3(text: string): string | null {
-  let out = "";
-  for (const char of text) {
-    const code = char.codePointAt(0) ?? 0;
-    if (code < TAG_OFFSET + TAG_MIN || code > TAG_OFFSET + TAG_MAX) continue;
-    out += String.fromCodePoint(code - TAG_OFFSET);
-  }
-  return out.startsWith(PAYLOAD_PREFIX) ? out : null;
-}
-
-function parseColors(decoded: string): { primary: string; accent: string } | null {
-  const [primary, accent] = decoded.slice(PAYLOAD_PREFIX.length).split(":");
-  if (!/^#[0-9a-f]{6}$/i.test(primary ?? "") || !/^#[0-9a-f]{6}$/i.test(accent ?? "")) return null;
-  return { primary, accent };
-}
-
-function findSizableAncestor(element: Element, maxHops = 6): HTMLElement | null {
-  let current: Element | null = element;
-  for (let i = 0; i < maxHops && current; i++) {
-    if (current instanceof HTMLElement && current.offsetWidth > 150 && current.offsetHeight > 80) {
-      return current;
-    }
-    current = current.parentElement;
-  }
-  return null;
-}
-
-const styledElements = new WeakSet<HTMLElement>();
-
-function applyThemeFromTextNode(node: Text): void {
-  const decoded = decode3y3(node.textContent ?? "");
-  if (!decoded || !node.parentElement) return;
-
-  const colors = parseColors(decoded);
-  if (!colors) return;
-
-  const target = findSizableAncestor(node.parentElement);
-  if (!target || styledElements.has(target)) return;
-
-  target.style.background = `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`;
-  styledElements.add(target);
-}
-
-function scanNode(node: Node): void {
-  if (node.nodeType === Node.TEXT_NODE) {
-    applyThemeFromTextNode(node as Text);
-    return;
-  }
-  if (!(node instanceof Element)) return;
-
-  const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
-  let textNode = walker.nextNode();
-  while (textNode) {
-    applyThemeFromTextNode(textNode as Text);
-    textNode = walker.nextNode();
-  }
-}
-
-let observer: MutationObserver | undefined;
-
-function startObserving(): void {
-  observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      mutation.addedNodes.forEach(scanNode);
-    }
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
-}
-
-function stopObserving(): void {
-  observer?.disconnect();
-  observer = undefined;
+function hexToInt(hex: string): number {
+  return parseInt(hex.replace("#", ""), 16);
 }
 
 function toggleThemePanel(): void {
@@ -141,14 +141,14 @@ function toggleThemePanel(): void {
   }
 
   const copyButton = document.createElement("button");
-  copyButton.textContent = "Copy invisible code";
+  copyButton.textContent = "Copy 3y3";
   copyButton.style.cssText =
     "margin-top:6px;padding:8px;border-radius:8px;border:none;background:#ff94b8;color:#18151e;font-weight:600;cursor:pointer;";
   copyButton.addEventListener("click", () => {
-    const payload = `${PAYLOAD_PREFIX}${primaryInput.value}:${accentInput.value}`;
-    void navigator.clipboard.writeText(encode3y3(payload));
+    const invisibleCode = encode(hexToInt(primaryInput.value), hexToInt(accentInput.value));
+    void navigator.clipboard.writeText(invisibleCode);
     copyButton.textContent = "Copied! Paste it in your bio";
-    setTimeout(() => (copyButton.textContent = "Copy invisible code"), 2000);
+    setTimeout(() => (copyButton.textContent = "Copy 3y3"), 2000);
   });
   panel.appendChild(copyButton);
 
@@ -157,14 +157,26 @@ function toggleThemePanel(): void {
 
 export const fakeProfileThemesPlugin: Plugin = {
   name: "FakeProfileThemes",
-  description: "Hides a profile color gradient as invisible text in bios so anyone can theme their profile.",
+  description: "Profile theming via invisible 3y3-encoded colors in bios, compatible with Vencord's plugin.",
   enabled: true,
   start(): void {
-    startObserving();
     window.zencordToggleProfileThemePanel = toggleThemePanel;
+
+    if (tryPatch()) return;
+
+    pollHandle = setInterval(() => {
+      if (tryPatch() && pollHandle !== undefined) {
+        clearInterval(pollHandle);
+        pollHandle = undefined;
+      }
+    }, POLL_INTERVAL_MS);
   },
   stop(): void {
-    stopObserving();
+    if (pollHandle !== undefined) {
+      clearInterval(pollHandle);
+      pollHandle = undefined;
+    }
+    restore();
     document.getElementById(PANEL_ID)?.remove();
     delete window.zencordToggleProfileThemePanel;
   },
