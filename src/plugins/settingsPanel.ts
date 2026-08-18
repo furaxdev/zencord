@@ -1,114 +1,45 @@
 /**
  * @author FuraxDev
- * Injects a "ZenCord" entry into Discord's user settings sidebar, anchored
- * next to the "Log Out" item (stable UI text, unlike the hashed class names
- * used everywhere else in that sidebar). Clicking it opens a self-styled
- * panel listing every registered plugin with an on/off toggle.
+ * Adds a real "ZenCord Settings" section to Discord's native settings
+ * sidebar, source-patched into the module that builds the settings layout
+ * tree — the same technique Vencord uses (see webpack/sourcePatcher.ts) —
+ * instead of injecting DOM nodes after the fact. Discord's own React then
+ * renders our section like any other, so it survives re-renders.
+ *
+ * LayoutTypes numeric IDs (SECTION/SIDEBAR_ITEM/PANEL/CATEGORY/CUSTOM) are
+ * resolved at runtime via findByProps when possible; the fallback values
+ * below mirror Vencord's own known-good constants as a best effort.
  */
 
 import type { Plugin } from "./index";
 import { getPlugins, setPluginEnabled } from "./index";
+import { findByProps } from "../webpack/findByProps";
+import { registerSourcePatch } from "../webpack/patchWebpackChunk";
 
-const ENTRY_ID = "zencord-settings-entry";
-const MODAL_ID = "zencord-settings-modal";
-const STYLE_ID = "zencord-settings-style";
+const ROOT_LAYOUT_BUILDER_CALL = /(\w+)\.buildLayout\(\)(?=\.map)/;
 
-function ensureStyles(): void {
-  if (document.getElementById(STYLE_ID)) return;
+const FALLBACK_LAYOUT_TYPES = { SECTION: 1, SIDEBAR_ITEM: 2, PANEL: 3, CATEGORY: 5, CUSTOM: 19 };
 
-  const style = document.createElement("style");
-  style.id = STYLE_ID;
-  style.textContent = `
-    #${ENTRY_ID} {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 6px 10px;
-      margin: 1px 0;
-      border-radius: 4px;
-      font-size: 16px;
-      font-weight: 500;
-      color: #b9bbbe;
-      cursor: pointer;
-    }
-    #${ENTRY_ID}:hover {
-      background: rgba(255, 148, 184, 0.08);
-      color: #fff;
-    }
-    #${ENTRY_ID} svg {
-      color: #ff94b8;
-      flex-shrink: 0;
-    }
-  `;
-  document.head.appendChild(style);
+function getLayoutTypes(): typeof FALLBACK_LAYOUT_TYPES {
+  const module = findByProps("SECTION", "SIDEBAR_ITEM", "PANEL", "CUSTOM") as
+    | Partial<typeof FALLBACK_LAYOUT_TYPES>
+    | undefined;
+  return { ...FALLBACK_LAYOUT_TYPES, ...module };
 }
 
-function buildEntry(): HTMLElement {
-  const entry = document.createElement("div");
-  entry.id = ENTRY_ID;
-  entry.setAttribute("role", "tab");
-  entry.innerHTML = `
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3z" />
-    </svg>
-    <span>ZenCord</span>
-  `;
-  entry.addEventListener("click", toggleModal);
-  return entry;
+interface ReactLike {
+  createElement: (type: unknown, props: Record<string, unknown> | null, ...children: unknown[]) => unknown;
+  useRef: <T>(initial: T | null) => { current: T | null };
+  useEffect: (effect: () => void | (() => void), deps: unknown[]) => void;
 }
 
-const MIN_SIDEBAR_ITEMS = 8;
+let cachedReact: ReactLike | undefined;
 
-// Discord's settings sidebar items all carry a class starting with "item_"
-// (CSS Modules hash suffix changes every build, the prefix doesn't). The
-// "Log Out" entry is the only one additionally carrying "destructive_" —
-// used here as a stable, locale-independent anchor instead of matching text.
-function findLogOutItem(root: Element): HTMLElement | null {
-  const candidates = root.querySelectorAll<HTMLElement>('[class*="destructive_"]');
-  for (const candidate of candidates) {
-    const parent = candidate.parentElement;
-    if (!parent) continue;
-
-    const siblingItems = parent.querySelectorAll('[class*="item_"]');
-    if (siblingItems.length >= MIN_SIDEBAR_ITEMS) {
-      return candidate;
-    }
+function getReact(): ReactLike | undefined {
+  if (!cachedReact) {
+    cachedReact = findByProps("createElement", "useEffect", "useRef") as ReactLike | undefined;
   }
-  return null;
-}
-
-function tryInjectWithin(root: Element): boolean {
-  if (document.getElementById(ENTRY_ID)) return true;
-
-  const logOutItem = findLogOutItem(root);
-  if (!logOutItem?.parentElement) return false;
-
-  ensureStyles();
-  logOutItem.parentElement.insertBefore(buildEntry(), logOutItem);
-  return true;
-}
-
-let observer: MutationObserver | undefined;
-
-function startObserving(): void {
-  tryInjectWithin(document.body);
-
-  observer = new MutationObserver((mutations) => {
-    if (document.getElementById(ENTRY_ID)) return;
-
-    for (const mutation of mutations) {
-      for (const node of mutation.addedNodes) {
-        if (node instanceof Element && tryInjectWithin(node)) return;
-      }
-    }
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
-}
-
-function stopObserving(): void {
-  observer?.disconnect();
-  observer = undefined;
-  document.getElementById(ENTRY_ID)?.remove();
+  return cachedReact;
 }
 
 function renderPluginRow(plugin: Plugin): HTMLElement {
@@ -137,47 +68,112 @@ function renderPluginRow(plugin: Plugin): HTMLElement {
   return row;
 }
 
-function toggleModal(): void {
-  const existing = document.getElementById(MODAL_ID);
-  if (existing) {
-    existing.remove();
-    return;
-  }
+function ZenCordPluginsPanel(): unknown {
+  const React = getReact();
+  if (!React) return null;
 
-  const backdrop = document.createElement("div");
-  backdrop.id = MODAL_ID;
-  backdrop.style.cssText =
-    "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);";
-  backdrop.addEventListener("click", (event) => {
-    if (event.target === backdrop) backdrop.remove();
-  });
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const panel = document.createElement("div");
-  panel.style.cssText =
-    "background:#18151e;border:1px solid #332c3d;border-radius:16px;padding:24px;width:440px;max-height:80vh;overflow-y:auto;font-family:sans-serif;color:#e2e8f0;box-shadow:0 20px 60px rgba(0,0,0,0.6);";
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.innerHTML = "";
+    for (const plugin of getPlugins()) {
+      container.appendChild(renderPluginRow(plugin));
+    }
+  }, []);
 
-  const title = document.createElement("h2");
-  title.textContent = "ZenCord Plugins";
-  title.style.cssText = "font-size:18px;font-weight:700;margin-bottom:16px;";
-  panel.appendChild(title);
+  return React.createElement("div", { ref: containerRef, style: { padding: "16px" } });
+}
 
-  for (const plugin of getPlugins()) {
-    panel.appendChild(renderPluginRow(plugin));
-  }
+interface LayoutNode {
+  key?: string;
+  type: number;
+  useTitle?: () => string;
+  buildLayout?: () => LayoutNode[];
+  Component?: () => unknown;
+}
 
-  backdrop.appendChild(panel);
-  document.body.appendChild(backdrop);
+interface RootLayoutBuilder {
+  key?: string;
+  buildLayout: () => LayoutNode[];
+}
+
+function buildZenCordSection(): LayoutNode {
+  const { SECTION, SIDEBAR_ITEM, PANEL, CATEGORY, CUSTOM } = getLayoutTypes();
+
+  const pluginsEntry: LayoutNode = {
+    key: "zencord_plugins",
+    type: SIDEBAR_ITEM,
+    useTitle: () => "Plugins",
+    buildLayout: () => [
+      {
+        key: "zencord_plugins_panel",
+        type: PANEL,
+        useTitle: () => "ZenCord Plugins",
+        buildLayout: () => [
+          {
+            key: "zencord_plugins_category",
+            type: CATEGORY,
+            buildLayout: () => [
+              {
+                key: "zencord_plugins_custom",
+                type: CUSTOM,
+                Component: ZenCordPluginsPanel,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  return {
+    key: "zencord_section",
+    type: SECTION,
+    useTitle: () => "ZenCord Settings",
+    buildLayout: () => [pluginsEntry],
+  };
+}
+
+function buildSettingsLayout(originalLayoutBuilder: RootLayoutBuilder): LayoutNode[] {
+  const layout = originalLayoutBuilder?.buildLayout?.();
+  if (!Array.isArray(layout)) return layout;
+  if (originalLayoutBuilder.key !== "$Root") return layout;
+  if (layout.some((section) => section?.key === "zencord_section")) return layout;
+
+  layout.splice(2, 0, buildZenCordSection());
+  return layout;
+}
+
+let sectionEnabled = false;
+let patchRegistered = false;
+
+function passthroughBuildLayout(originalLayoutBuilder: RootLayoutBuilder): LayoutNode[] {
+  return sectionEnabled ? buildSettingsLayout(originalLayoutBuilder) : originalLayoutBuilder?.buildLayout?.();
 }
 
 export const settingsPanelPlugin: Plugin = {
   name: "SettingsPanel",
-  description: "Adds a ZenCord entry to Discord's settings sidebar to toggle plugins.",
+  description: "Adds a native ZenCord Settings section to Discord's settings sidebar to toggle plugins.",
   enabled: true,
   start(): void {
-    startObserving();
+    sectionEnabled = true;
+
+    if (!patchRegistered) {
+      window.__zencordBuildSettingsLayout = passthroughBuildLayout;
+      registerSourcePatch({
+        find: ".buildLayout().map",
+        match: ROOT_LAYOUT_BUILDER_CALL,
+        replace: "window.__zencordBuildSettingsLayout($1)",
+      });
+      patchRegistered = true;
+    }
   },
   stop(): void {
-    stopObserving();
-    document.getElementById(MODAL_ID)?.remove();
+    // The source patch is baked into the reconstructed factory once Discord's
+    // chunk has loaded, so it can't be fully undone for this page session —
+    // the passthrough flag makes it act as a no-op instead.
+    sectionEnabled = false;
   },
 };
