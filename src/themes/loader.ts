@@ -10,7 +10,9 @@ function getStyleElement(): HTMLStyleElement {
   if (!style) {
     style = document.createElement("style");
     style.id = STYLE_ELEMENT_ID;
-    document.head.appendChild(style);
+    // core.js runs at document_start, before <head> necessarily exists yet;
+    // documentElement (<html>) is always present by then.
+    (document.head ?? document.documentElement).appendChild(style);
   }
   return style;
 }
