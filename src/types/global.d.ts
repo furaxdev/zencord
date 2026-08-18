@@ -25,6 +25,6 @@ declare global {
     };
     findByProps?: (...props: string[]) => Record<string, unknown> | undefined;
     zencordToggleProfileThemePanel?: () => void;
-    __zencordBuildSettingsLayout?: (originalLayoutBuilder: { key?: string; buildLayout: () => unknown[] }) => unknown[];
+    __zencordBuildSettingsLayout?: (originalLayoutBuilder: any) => any;
   }
 }
