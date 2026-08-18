@@ -7,6 +7,7 @@ import { examplePlugin } from "./example";
 import { trackerBlockerPlugin } from "./trackerBlocker";
 import { avatarViewerPlugin } from "./avatarViewer";
 import { fakeNitroPlugin } from "./fakeNitro";
+import { themeUnlockerPlugin } from "./themeUnlocker";
 
 export interface Plugin {
   name: string;
@@ -16,7 +17,7 @@ export interface Plugin {
   stop(): void;
 }
 
-const plugins: Plugin[] = [examplePlugin, trackerBlockerPlugin, avatarViewerPlugin, fakeNitroPlugin];
+const plugins: Plugin[] = [examplePlugin, trackerBlockerPlugin, avatarViewerPlugin, fakeNitroPlugin, themeUnlockerPlugin];
 
 export function getPlugins(): readonly Plugin[] {
   return plugins;
