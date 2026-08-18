@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "ZenCord",
+  "version": "0.1.0",
+  "description": "An ultra-lightweight Discord client modification: plugins, custom themes, and telemetry blocking.",
+  "icons": {
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://discord.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["core.js"],
+      "matches": ["https://discord.com/*"]
+    }
+  ]
+}
