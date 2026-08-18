@@ -57,13 +57,21 @@ function buildEntry(): HTMLElement {
   return entry;
 }
 
-const MIN_SETTINGS_TABS = 8;
+const MIN_SIDEBAR_ITEMS = 8;
 
-function findSettingsTablist(root: Element): HTMLElement | null {
-  const tablists = root.querySelectorAll<HTMLElement>('[role="tablist"]');
-  for (const tablist of tablists) {
-    if (tablist.querySelectorAll('[role="tab"]').length >= MIN_SETTINGS_TABS) {
-      return tablist;
+// Discord's settings sidebar items all carry a class starting with "item_"
+// (CSS Modules hash suffix changes every build, the prefix doesn't). The
+// "Log Out" entry is the only one additionally carrying "destructive_" —
+// used here as a stable, locale-independent anchor instead of matching text.
+function findLogOutItem(root: Element): HTMLElement | null {
+  const candidates = root.querySelectorAll<HTMLElement>('[class*="destructive_"]');
+  for (const candidate of candidates) {
+    const parent = candidate.parentElement;
+    if (!parent) continue;
+
+    const siblingItems = parent.querySelectorAll('[class*="item_"]');
+    if (siblingItems.length >= MIN_SIDEBAR_ITEMS) {
+      return candidate;
     }
   }
   return null;
@@ -72,15 +80,11 @@ function findSettingsTablist(root: Element): HTMLElement | null {
 function tryInjectWithin(root: Element): boolean {
   if (document.getElementById(ENTRY_ID)) return true;
 
-  const tablist = findSettingsTablist(root);
-  if (!tablist) return false;
-
-  const tabs = tablist.querySelectorAll('[role="tab"]');
-  const lastTab = tabs[tabs.length - 1];
-  if (!lastTab?.parentElement) return false;
+  const logOutItem = findLogOutItem(root);
+  if (!logOutItem?.parentElement) return false;
 
   ensureStyles();
-  lastTab.parentElement.insertBefore(buildEntry(), lastTab);
+  logOutItem.parentElement.insertBefore(buildEntry(), logOutItem);
   return true;
 }
 
