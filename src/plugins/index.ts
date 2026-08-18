@@ -4,6 +4,7 @@
  */
 
 import { examplePlugin } from "./example";
+import { trackerBlockerPlugin } from "./trackerBlocker";
 
 export interface Plugin {
   name: string;
@@ -13,7 +14,7 @@ export interface Plugin {
   stop(): void;
 }
 
-const plugins: Plugin[] = [examplePlugin];
+const plugins: Plugin[] = [examplePlugin, trackerBlockerPlugin];
 
 export function getPlugins(): readonly Plugin[] {
   return plugins;
