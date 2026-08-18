@@ -10,6 +10,7 @@ import { fakeNitroPlugin } from "./fakeNitro";
 import { themeUnlockerPlugin } from "./themeUnlocker";
 import { fakeProfileThemesPlugin } from "./fakeProfileThemes";
 import { settingsPanelPlugin } from "./settingsPanel";
+import { emojiUnlockerPlugin } from "./emojiUnlocker";
 
 export interface Plugin {
   name: string;
@@ -27,6 +28,7 @@ const plugins: Plugin[] = [
   themeUnlockerPlugin,
   fakeProfileThemesPlugin,
   settingsPanelPlugin,
+  emojiUnlockerPlugin,
 ];
 
 export function getPlugins(): readonly Plugin[] {
