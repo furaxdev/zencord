@@ -1,6 +1,9 @@
 /**
  * @author FuraxDev
- * ZenCord core — injected directly into Discord's real page context by content.ts.
+ * ZenCord core — registered as a document_start content script running in
+ * the page's MAIN world (manifest.json), so it executes directly in
+ * Discord's real page context (same window as their own scripts) before any
+ * of their code runs, with no injection step and no page-CSP exposure.
  * Exposes findByProps globally and bootstraps plugins and themes.
  */
 

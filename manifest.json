@@ -9,15 +9,10 @@
   "content_scripts": [
     {
       "matches": ["https://discord.com/*"],
-      "js": ["content.js"],
+      "js": ["core.js"],
       "run_at": "document_start",
+      "world": "MAIN",
       "all_frames": false
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["core.js"],
-      "matches": ["https://discord.com/*"]
     }
   ]
 }

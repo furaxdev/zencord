@@ -4,7 +4,6 @@ const CopyPlugin = require("copy-webpack-plugin");
 /** @author FuraxDev */
 module.exports = {
   entry: {
-    content: "./src/content.ts",
     core: "./src/core.ts",
   },
   output: {

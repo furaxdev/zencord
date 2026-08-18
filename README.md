@@ -23,8 +23,8 @@ The build output goes to `dist/`.
 
 ## Project structure
 
-- `src/content.ts` — content script injected at `document_start`; loads `core.js` as a real `<script>` tag in the page DOM.
-- `src/core.ts` — entry point running in the page's real context; exposes `findByProps` and bootstraps plugins/themes.
+- `src/core.ts` — entry point, registered as a `document_start` content script running in the page's `"world": "MAIN"` (see `manifest.json`); exposes `findByProps` and bootstraps plugins/themes.
 - `src/webpack/findByProps.ts` — scans Discord's internal Webpack modules.
+- `src/webpack/patchWebpackChunk.ts` / `sourcePatcher.ts` — Webpack chunk interception and source-level factory patching.
 - `src/plugins/` — plugin registry and individual plugins.
 - `src/themes/loader.ts` — custom CSS theme injection.
