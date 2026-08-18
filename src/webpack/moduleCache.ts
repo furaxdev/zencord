@@ -5,8 +5,10 @@
 
 const modules = new Map<string | number, Record<string, unknown>>();
 
-export function registerModule(id: string | number, exports: Record<string, unknown>): void {
-  if (exports) modules.set(id, exports);
+export function registerModule(id: string | number, exports: unknown): void {
+  if (typeof exports === "object" && exports !== null) {
+    modules.set(id, exports as Record<string, unknown>);
+  }
 }
 
 export function getModules(): IterableIterator<Record<string, unknown>> {
