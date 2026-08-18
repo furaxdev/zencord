@@ -138,11 +138,13 @@ function buildZenCordSection(): LayoutNode {
 
 function buildSettingsLayout(originalLayoutBuilder: RootLayoutBuilder): LayoutNode[] {
   const layout = originalLayoutBuilder?.buildLayout?.();
+  console.log("[ZenCord][debug] buildSettingsLayout called, key:", originalLayoutBuilder?.key, "layout:", layout);
   if (!Array.isArray(layout)) return layout;
   if (originalLayoutBuilder.key !== "$Root") return layout;
   if (layout.some((section) => section?.key === "zencord_section")) return layout;
 
   layout.splice(2, 0, buildZenCordSection());
+  console.log("[ZenCord][debug] ZenCord section spliced into root layout:", layout);
   return layout;
 }
 
