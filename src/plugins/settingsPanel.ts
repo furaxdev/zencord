@@ -85,7 +85,9 @@ function ensureEntryInjected(): void {
   const existing = document.getElementById(ENTRY_ID);
   if (existing?.isConnected) return;
 
-  const logOutItem = findLogOutItem(document.body);
+  // documentElement (<html>) is always present at document_start, unlike
+  // <head>/<body>, and still contains <body> once the parser reaches it.
+  const logOutItem = findLogOutItem(document.documentElement);
   if (!logOutItem?.parentElement) return;
 
   ensureStyles();
@@ -97,7 +99,7 @@ let observer: MutationObserver | undefined;
 function startObserving(): void {
   ensureEntryInjected();
   observer = new MutationObserver(() => ensureEntryInjected());
-  observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
 }
 
 function stopObserving(): void {
