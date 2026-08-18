@@ -57,27 +57,30 @@ function buildEntry(): HTMLElement {
   return entry;
 }
 
-function findLogOutTab(root: Node): HTMLElement | null {
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  let node = walker.nextNode();
-  while (node) {
-    if (node.textContent?.trim() === "Log Out") {
-      const el = node.parentElement;
-      return (el?.closest('[role="tab"]') as HTMLElement | null) ?? el;
+const MIN_SETTINGS_TABS = 8;
+
+function findSettingsTablist(root: Element): HTMLElement | null {
+  const tablists = root.querySelectorAll<HTMLElement>('[role="tablist"]');
+  for (const tablist of tablists) {
+    if (tablist.querySelectorAll('[role="tab"]').length >= MIN_SETTINGS_TABS) {
+      return tablist;
     }
-    node = walker.nextNode();
   }
   return null;
 }
 
-function tryInjectWithin(root: Node): boolean {
+function tryInjectWithin(root: Element): boolean {
   if (document.getElementById(ENTRY_ID)) return true;
 
-  const logOutTab = findLogOutTab(root);
-  if (!logOutTab?.parentElement) return false;
+  const tablist = findSettingsTablist(root);
+  if (!tablist) return false;
+
+  const tabs = tablist.querySelectorAll('[role="tab"]');
+  const lastTab = tabs[tabs.length - 1];
+  if (!lastTab?.parentElement) return false;
 
   ensureStyles();
-  logOutTab.parentElement.insertBefore(buildEntry(), logOutTab);
+  lastTab.parentElement.insertBefore(buildEntry(), lastTab);
   return true;
 }
 
